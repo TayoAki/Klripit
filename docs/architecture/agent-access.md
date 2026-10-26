@@ -34,6 +34,18 @@ tools. Each tool calls back into this same app in-process
 drift from the REST behaviour. Cloud mode 401s without a resolvable user;
 self-host stays BYOK-open.
 
+## Self-host access token (`access_gate.py`)
+
+`OPENSHORTS_ACCESS_TOKEN` gates a self-hosted instance on a public URL: a pure
+ASGI middleware (inside CORS) requires `Bearer <token>` / `X-API-Key` on every
+request. Open: `/health*`, `OPTIONS`, `PUT /api/uploads/<uuid>` (the slot is the
+capability), and `/videos` / `/thumbnails` with a `media_auth` path capability
+keyed on a secret derived from the token. Every media URL handed to an agent or
+webhook goes through `access_gate.sign` (identity when the gate is off). MCP
+tools pass because `mcp_server._client` forwards the caller's headers; the
+stdio bridge falls back to the token as its bearer. Cloud mode ignores the
+variable. Deploy guide: `docs/deploy-railway.md`.
+
 ## stdio transport (`mcp_stdio.py`)
 
 The same `handle_message` / `call_tool` as a subprocess, for hosts that only

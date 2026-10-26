@@ -347,6 +347,11 @@ claude mcp add --transport http openshorts https://mcp.openshorts.app/mcp \
 # Self-hosted (no key needed, BYOK rules apply):
 claude mcp add --transport http openshorts http://localhost:8000/mcp
 
+# Self-hosted on a public URL (Railway, a VPS): set OPENSHORTS_ACCESS_TOKEN on
+# the server and send it as a bearer. Guide: docs/deploy-railway.md
+claude mcp add --transport http openshorts https://<your-host>/mcp \
+  --header "Authorization: Bearer $OPENSHORTS_ACCESS_TOKEN"
+
 # Self-hosted without running the web server: same tools over stdio
 claude mcp add openshorts -- python mcp_stdio.py
 ```

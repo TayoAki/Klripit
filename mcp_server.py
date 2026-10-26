@@ -28,6 +28,7 @@ import httpx
 from fastapi import APIRouter, Request
 from fastapi.responses import JSONResponse, Response
 
+import access_gate
 import mcp_ui
 from subtitles import CAPTION_PRESETS, line_budget
 
@@ -463,7 +464,10 @@ def _clip_summaries(job_id, result):
     base = os.environ.get("PUBLIC_API_URL", "").rstrip("/")
     out = []
     for i, clip in enumerate(result.get("clips") or []):
-        rel = clip.get("video_url") or ""
+        # Behind OPENSHORTS_ACCESS_TOKEN a bare /videos path is a 401 for
+        # anyone without the header (a browser, a host's <video> preview), so
+        # hand out a path capability instead; unchanged when the gate is off.
+        rel = access_gate.sign(clip.get("video_url") or "")
         out.append({
             "index": i,
             "title": clip.get("title") or clip.get("video_title_for_youtube_short"),

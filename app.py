@@ -2389,7 +2389,7 @@ async def _webhook_clip_entries(job_id, job):
     clips = (job.get('result') or {}).get('clips') or []
     entries = []
     for i, clip in enumerate(clips):
-        rel = clip.get('video_url') or ""
+        rel = access_gate.sign(clip.get('video_url') or "")
         entries.append({
             "index": i,
             "title": clip.get('title') or clip.get('video_title_for_youtube_short'),
@@ -2626,6 +2626,13 @@ app.include_router(_mcp_server.router)
 # captions only, never the GPU) and the title/description/tag generator.
 import free_tools as _free_tools
 app.include_router(_free_tools.router)
+
+# Self-host on a public URL: OPENSHORTS_ACCESS_TOKEN makes every request (MCP
+# included) carry that token as a bearer (see access_gate.py). No-op when unset
+# and in cloud mode. Added before CORS so CORS stays outermost: preflights are
+# answered and a 401 still carries the CORS headers.
+import access_gate
+app.add_middleware(access_gate.AccessGateMiddleware)
 
 # Enable CORS for frontend. Cloud mode locks this down to the configured origins;
 # self-host keeps the permissive wildcard it has always used.

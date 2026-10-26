@@ -14,6 +14,17 @@ COPY requirements.txt requirements-billing.txt ./
 RUN python -m venv /opt/venv
 ENV PATH="/opt/venv/bin:$PATH"
 RUN pip install --upgrade pip
+# CPU-only hosts (Railway, most VPSes): --build-arg
+# TORCH_INDEX_URL=https://download.pytorch.org/whl/cpu installs the pinned
+# torch/torchvision as CPU wheels first, and the requirements line below then
+# accepts them as satisfied (2.11.0+cpu matches ==2.11.0). PyPI's default Linux
+# wheels pull ~3 GB of CUDA libraries a host without a GPU never loads. Railway
+# passes a service variable of the same name in as this ARG.
+ARG TORCH_INDEX_URL=""
+RUN if [ -n "$TORCH_INDEX_URL" ]; then \
+      pip install --no-cache-dir --index-url "$TORCH_INDEX_URL" \
+        $(grep -E '^(torch|torchvision)==' requirements.txt); \
+    fi
 RUN pip install --no-cache-dir -r requirements.txt
 # Cloud (paid mode) deps: installed always so one image serves both modes; they
 # are only imported when BILLING_ENABLED is set. Harmless/unused in self-host.

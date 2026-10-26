@@ -86,6 +86,7 @@ Ingest (yt-dlp or upload) → transcription (word timestamps) → scene detectio
 - MCP stdio: swap `sys.stdout` for stderr **before importing `app`**, and enter the app lifespan.
 - Webhook URLs go through `security_utils.assert_public_url` at submit AND at delivery.
 - API-key auth can never manage keys or delete the account. OAuth tokens are ordinary `osk_` keys.
+- Behind `OPENSHORTS_ACCESS_TOKEN` (self-host on a public URL, `access_gate.py`), every `/videos` or `/thumbnails` URL handed to an agent or webhook goes through `access_gate.sign`; a bare path is a 401 for whoever lacks the header.
 
 **Billing, account, privacy**
 - GDPR erasure order is fixed: Stripe cancel (abort on failure) → R2 purge → one DB transaction over `USER_OWNED_TABLES`. Never via API key. Every new table referencing `users.id` joins `USER_OWNED_TABLES` (a test enforces it).

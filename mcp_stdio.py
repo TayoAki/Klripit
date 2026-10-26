@@ -37,11 +37,16 @@ import mcp_server  # noqa: E402
 
 # BYOK credentials reach the tools the same way an HTTP client would send them:
 # as forwarded headers (mcp_server._FORWARD_HEADERS), not as a second code path.
+def _bearer():
+    # OPENSHORTS_ACCESS_TOKEN: the self-host gate (access_gate.py) checks the
+    # in-process tool calls too, so a gated instance's own stdio bridge must
+    # present the token like any HTTP client.
+    key = os.environ.get("OPENSHORTS_API_KEY") or os.environ.get("OPENSHORTS_ACCESS_TOKEN")
+    return f"Bearer {key}" if key else None
+
+
 _ENV_HEADERS = {
-    "authorization": lambda: (
-        f"Bearer {os.environ['OPENSHORTS_API_KEY']}"
-        if os.environ.get("OPENSHORTS_API_KEY") else None
-    ),
+    "authorization": _bearer,
     "x-gemini-key": lambda: os.environ.get("GEMINI_API_KEY"),
     "x-upload-post-key": lambda: os.environ.get("UPLOAD_POST_API_KEY"),
 }
